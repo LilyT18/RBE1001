@@ -20,4 +20,3 @@ right_motor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, True)
 
 left_motor.spin_for(FORWARD, 1, TURNS, 30, RPM, wait = False)
 right_motor.spin_for(FORWARD, 1, TURNS, 30, RPM, wait = False)
-        
