@@ -164,7 +164,7 @@ def handleMotionComplete():
 
 ## TODO: Add a checker for the reflectance sensor
 def checkReflectanceTriggered():
-    if reflectanceSensor.value() == 123: #Check value for triggered
+    if reflectanceSensor.value() <= 2000: #Check value for triggered
         return True
     return False
 
@@ -203,6 +203,7 @@ the VEX event system.
 # The main loop
 while True:
     if(checkMotionComplete()): handleMotionComplete()
+    #print(rangefinder.value)
 
 ## TODO: Add various checkers/handlers; print ultrasonic; etc. See handout.
     #if(checkReflectanceTriggered()): handleReflectanceTriggered()
