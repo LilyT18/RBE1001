@@ -57,6 +57,10 @@ from vex import *
 IDLE = 0
 DRIVING_FWD = 1
 DRIVING_BKWD = 2
+TURN_RIGHT = 3
+TURN_LEFT = 4
+ARM_UP = 5
+ARM_DOWN = 6
 
 # start out in the idle state
 current_state = IDLE
