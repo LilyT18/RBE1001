@@ -8,6 +8,7 @@ brain =Brain()
 # Robot configuration code
 left_motor = Motor(Ports.PORT2, GearSetting.RATIO_18_1, False)
 right_motor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, True)
+arm_motor = Motor(Ports.PORT8, GearSetting.RATIO_18_1, False) # Check motor port
 controller_1 = Controller(PRIMARY)
 
 # wait for rotation sensor to fully initialize
@@ -38,7 +39,7 @@ from vex import *
 IDLE = 0
 DRIVING_FWD = 1
 DRIVING_BKWD = 2
-TURN_RIGHT = 3
+HOOKING_CUP = 3
 TURN_LEFT = 4
 ARM_UP = 5
 ARM_DOWN = 6
@@ -49,6 +50,7 @@ speedOfTravel = 150 #in RPM approx. 10 cm/s
 
 # start out in the idle state
 current_state = IDLE
+current_arm_state = ARM_UP
 
 # Bumper
 bumperSwitch = Bumper(brain.three_wire_port.g) #Check port number
@@ -97,7 +99,13 @@ def handleBumperG():
     global current_state
 
     if(current_state == DRIVING_FWD):
-        print('FORWARD -> BACKWARD')
+        print('FORWARD -> HOOKING_CUP')
+        current_state = HOOKING_CUP
+      
+        hookCup()
+    
+    elif(current_state == HOOKING_CUP):
+        print('HOOKING_CUP -> BACKWARD')
         current_state = DRIVING_BKWD
       
         drive_for(REVERSE, distanceOfTravel, speedOfTravel)
@@ -131,7 +139,13 @@ def handleMotionComplete():
     global current_state
 
     if(current_state == DRIVING_FWD):
-        print('FORWARD -> BACKWARD')
+        print('FORWARD -> HOOKING_CUP')
+        current_state = HOOKING_CUP
+
+        hookCup()
+        
+    elif(current_state == HOOKING_CUP):
+        print('HOOKING_CUP -> BACKWARD')
         current_state = DRIVING_BKWD
       
         drive_for(REVERSE, distanceOfTravel, speedOfTravel)
@@ -143,37 +157,57 @@ def handleMotionComplete():
     else:
         print('E-stop') # Should print when button is used as E-stop
 
+#Function for the motion of hooking cup
+def hookCup():
+    global current_state
+    print('HOOKING CUP')
+    # Add code to hook cup here
 
-## TODO: Add a checker for the reflectance sensor
+# Add a checker for the reflectance sensor
 def checkReflectanceTriggered():
     if reflectanceSensor.value() == 123: #Check value for triggered
         return True
     return False
 
-## Handler for when the reflectance sensor triggers
+# Handler for when the reflectance sensor triggers
 def handleReflectanceTriggered():
     global current_state
     
     if(current_state == DRIVING_FWD):
-        print('FORWARD -> BACKWARD')
+        print('FORWARD -> HOOKING_CUP')
+        current_state = HOOKING_CUP
+
+        hookCup()
+
+    elif(current_state == HOOKING_CUP):
+        print('HOOKING_CUP -> BACKWARD')
         current_state = DRIVING_BKWD
       
         drive_for(REVERSE, distanceOfTravel, speedOfTravel)
-    
+        
     elif(current_state == DRIVING_BKWD):
         print('BACKWARD -> IDLE')
         current_state = IDLE
 
     else:
         print('E-stop')
+        
 
-def lowerarm():
+def lowerarm(location):
     global current_state
     
     if(current_state != ARM_DOWN):
         print(' -> ARM_DOWN')
         current_state = ARM_DOWN
-        
+        # Add code to lower arm here
+
+def raisearm(location):
+    global current_state
+    
+    if(current_state != ARM_UP):
+        print(' -> ARM_UP')
+        current_state = ARM_UP
+        # Add code to raise arm here
 
 """
 The line below makes use of VEX's built-in event management. Basically, we set up a "callback", 
