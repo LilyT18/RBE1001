@@ -4,13 +4,12 @@ import os
 import math
 
 # Brain should be defined by default
-brain=Brain()
+brain =Brain()
 
 # Robot configuration code
 left_motor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
 right_motor = Motor(Ports.PORT10, GearSetting.RATIO_18_1, True)
 controller_1 = Controller(PRIMARY)
-
 
 # wait for rotation sensor to fully initialize
 wait(30, MSEC)
@@ -62,24 +61,27 @@ TURN_LEFT = 4
 ARM_UP = 5
 ARM_DOWN = 6
 
+distanceOfTravel = 1128 #in degrees approx. 1m
+speedOfTravel = 18.7984 #in RPM approx. 10 cm/s
+
 # start out in the idle state
 current_state = IDLE
 
 # Bumper
-## TODO: Add a Bumper with the Device Manager
+bumperSwitch = Bumper(Ports.PORT8) #Check port number
 
 # Reflectance
-## TODO: Add a reflectance sensor (Linetracker) with the Device Manager
+reflectanceSensor = Line(Ports.PORT7) #Check port number
 
 # Rangefinder
-## TODO: Add an ultrasonic rangefinder (Rangefinder) with the Device Manager
+rangefinder = Sonar(Ports.PORT6) #Check port number
 
-def drive_for(direction, turns, speed):
+def drive_for(direction, degrees, speed):
     left_motor.set_velocity(speed, RPM);
-    left_motor.spin_for(direction, turns, TURNS, wait = False)
+    left_motor.spin_for(direction, degrees, DEGREES, wait = False)
 
     right_motor.set_velocity(speed, RPM);
-    right_motor.spin_for(direction, turns, TURNS, wait = False)
+    right_motor.spin_for(direction, degrees, DEGREES, wait = False)
 
 """
 Pro-tip: print out state _transistions_.
@@ -98,7 +100,7 @@ def handleLeft1Button():
         # return to the main loop.
 
         ## TODO: You'll need to update the speed and number of turns
-        drive_for(FORWARD, 5, 60)
+        drive_for(FORWARD, distanceOfTravel, speedOfTravel)
         
     else: # in any other state, the button acts as a kill switch
         print(' -> IDLE')
@@ -141,7 +143,7 @@ def handleMotionComplete():
         current_state = DRIVING_BKWD
 
          ## TODO: You'll need to update the speed and number of turns       
-        drive_for(REVERSE, 5, 60)
+        drive_for(REVERSE, distanceOfTravel, speedOfTravel)
     
     elif(current_state == DRIVING_BKWD):
         print('BACKWARD -> IDLE')
