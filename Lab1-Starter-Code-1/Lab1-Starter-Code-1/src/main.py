@@ -113,7 +113,18 @@ Pro-tip: print out state _transistions_.
 def handleBumperG():
     global current_state
 
-    current_state = REVERSE
+    if(current_state == DRIVING_FWD):
+        print('FORWARD -> BACKWARD')
+        current_state = DRIVING_BKWD
+      
+        drive_for(REVERSE, distanceOfTravel, speedOfTravel)
+    
+    elif(current_state == DRIVING_BKWD):
+        print('BACKWARD -> IDLE')
+        current_state = IDLE
+
+    else:
+        print('E-stop')
 
 
 # Here, we give an example of a proper event checker. It checks for the _event_ 
@@ -152,13 +163,26 @@ def handleMotionComplete():
 
 ## TODO: Add a checker for the reflectance sensor
 def checkReflectanceTriggered():
-    return reflectanceSensor.value() == 123 #Check value for triggered
+    if reflectanceSensor.value() == 123: #Check value for triggered
+        return True
+    return False
 
 ## Handler for when the reflectance sensor triggers
 def handleReflectanceTriggered():
     global current_state
+    
+    if(current_state == DRIVING_FWD):
+        print('FORWARD -> BACKWARD')
+        current_state = DRIVING_BKWD
+      
+        drive_for(REVERSE, distanceOfTravel, speedOfTravel)
+    
+    elif(current_state == DRIVING_BKWD):
+        print('BACKWARD -> IDLE')
+        current_state = IDLE
 
-    current_state = REVERSE
+    else:
+        print('E-stop')
 
 """
 The line below makes use of VEX's built-in event management. Basically, we set up a "callback", 
@@ -168,8 +192,8 @@ _without you having to do anything else_.
 
 """
 controller_1.buttonL1.pressed(handleLeft1Button)
-
-## TODO: Add event callback for bumper
+  
+bumperSwitch.pressed(handleBumperG)
 
 """
 Note that the main loop only checks for the completed motion. The button press is handled by 
@@ -180,3 +204,4 @@ while True:
     if(checkMotionComplete()): handleMotionComplete()
 
 ## TODO: Add various checkers/handlers; print ultrasonic; etc. See handout.
+    if(checkReflectanceTriggered()): handleReflectanceTriggered()
