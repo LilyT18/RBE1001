@@ -98,8 +98,7 @@ def handleLeft1Button():
         # No need to call over and over and over in a loop.
         # Also, note that we call the non-blocking version so we can
         # return to the main loop.
-
-        ## TODO: You'll need to update the speed and number of turns
+        
         drive_for(FORWARD, distanceOfTravel, speedOfTravel)
         
     else: # in any other state, the button acts as a kill switch
@@ -114,8 +113,7 @@ Pro-tip: print out state _transistions_.
 def handleBumperG():
     global current_state
 
-    ## Todo: Add code to handle the bumper being presses
-    pass
+    current_state = REVERSE
 
 
 # Here, we give an example of a proper event checker. It checks for the _event_ 
@@ -141,8 +139,7 @@ def handleMotionComplete():
     if(current_state == DRIVING_FWD):
         print('FORWARD -> BACKWARD')
         current_state = DRIVING_BKWD
-
-         ## TODO: You'll need to update the speed and number of turns       
+      
         drive_for(REVERSE, distanceOfTravel, speedOfTravel)
     
     elif(current_state == DRIVING_BKWD):
@@ -154,10 +151,14 @@ def handleMotionComplete():
 
 
 ## TODO: Add a checker for the reflectance sensor
-## See checkMotionComplete() for a good example
+def checkReflectanceTriggered():
+    return reflectanceSensor.value() == 123 #Check value for triggered
 
-## TODO: Add a handler for when the reflectance sensor triggers
+## Handler for when the reflectance sensor triggers
+def handleReflectanceTriggered():
+    global current_state
 
+    current_state = REVERSE
 
 """
 The line below makes use of VEX's built-in event management. Basically, we set up a "callback", 
