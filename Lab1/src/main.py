@@ -62,7 +62,7 @@ ARM_UP = 5
 ARM_DOWN = 6
 
 #5 Turns equivalent to diameter of the 4in wheels
-distanceOfTravel = 5 #in turns approx. 1m
+distanceOfTravel = 10 #in turns approx. 1m
 speedOfTravel = 150 #in RPM approx. 10 cm/s
 
 # start out in the idle state
@@ -164,7 +164,7 @@ def handleMotionComplete():
 
 ## TODO: Add a checker for the reflectance sensor
 def checkReflectanceTriggered():
-    if reflectanceSensor.value() == 123: #Check value for triggered
+    if reflectanceSensor.value() < 2600: #Check value for triggered
         return True
     return False
 
@@ -205,5 +205,6 @@ while True:
     if(checkMotionComplete()): handleMotionComplete()
 
 ## TODO: Add various checkers/handlers; print ultrasonic; etc. See handout.
-    #if(checkReflectanceTriggered()): handleReflectanceTriggered()
+    if(checkReflectanceTriggered()): handleReflectanceTriggered()
+    print("Reflectance Sensor Value: ", reflectanceSensor.value())
     #print("Ultrasonic Distance: ", rangefinder.distance(DistanceUnits.MM), " mm")
