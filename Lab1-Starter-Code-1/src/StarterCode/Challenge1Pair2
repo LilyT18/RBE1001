@@ -1,3 +1,7 @@
+#Need to test encoder locations for the arm motor and distance for the reflectance sensor
+#Check motor port for arm motor
+#Create movement for the hookcup() function
+
 #region VEXcode Generated Robot Configuration
 from vex import *
 import math
