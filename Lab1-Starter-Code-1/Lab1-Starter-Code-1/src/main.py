@@ -205,3 +205,4 @@ while True:
 
 ## TODO: Add various checkers/handlers; print ultrasonic; etc. See handout.
     if(checkReflectanceTriggered()): handleReflectanceTriggered()
+    print("Ultrasonic Distance: ", rangefinder.distance(DistanceUnits.MM), " mm")
