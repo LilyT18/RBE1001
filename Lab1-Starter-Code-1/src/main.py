@@ -1,16 +1,15 @@
 #region VEXcode Generated Robot Configuration
 from vex import *
-import urandom
+import os
 import math
 
 # Brain should be defined by default
-brain=Brain()
+brain =Brain()
 
 # Robot configuration code
 left_motor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
 right_motor = Motor(Ports.PORT10, GearSetting.RATIO_18_1, True)
 controller_1 = Controller(PRIMARY)
-
 
 # wait for rotation sensor to fully initialize
 wait(30, MSEC)
@@ -20,7 +19,7 @@ wait(30, MSEC)
 def initializeRandomSeed():
     wait(100, MSEC)
     random = brain.battery.voltage(MV) + brain.battery.current(CurrentUnits.AMP) * 100 + brain.timer.system_high_res()
-    urandom.seed(int(random))
+    os.urandom.seed(int(random))
       
 # Set random seed 
 initializeRandomSeed()
@@ -57,25 +56,32 @@ from vex import *
 IDLE = 0
 DRIVING_FWD = 1
 DRIVING_BKWD = 2
+TURN_RIGHT = 3
+TURN_LEFT = 4
+ARM_UP = 5
+ARM_DOWN = 6
+
+distanceOfTravel = 1128 #in degrees approx. 1m
+speedOfTravel = 18.7984 #in RPM approx. 10 cm/s
 
 # start out in the idle state
 current_state = IDLE
 
 # Bumper
-## TODO: Add a Bumper with the Device Manager
+bumperSwitch = Bumper(Ports.PORT8) #Check port number
 
 # Reflectance
-## TODO: Add a reflectance sensor (Linetracker) with the Device Manager
+reflectanceSensor = Line(Ports.PORT7) #Check port number
 
 # Rangefinder
-## TODO: Add an ultrasonic rangefinder (Rangefinder) with the Device Manager
+rangefinder = Sonar(Ports.PORT6) #Check port number
 
-def drive_for(direction, turns, speed):
+def drive_for(direction, degrees, speed):
     left_motor.set_velocity(speed, RPM);
-    left_motor.spin_for(direction, turns, TURNS, wait = False)
+    left_motor.spin_for(direction, degrees, DEGREES, wait = False)
 
     right_motor.set_velocity(speed, RPM);
-    right_motor.spin_for(direction, turns, TURNS, wait = False)
+    right_motor.spin_for(direction, degrees, DEGREES, wait = False)
 
 """
 Pro-tip: print out state _transistions_.
@@ -92,9 +98,8 @@ def handleLeft1Button():
         # No need to call over and over and over in a loop.
         # Also, note that we call the non-blocking version so we can
         # return to the main loop.
-
-        ## TODO: You'll need to update the speed and number of turns
-        drive_for(FORWARD, 5, 60)
+        
+        drive_for(FORWARD, distanceOfTravel, speedOfTravel)
         
     else: # in any other state, the button acts as a kill switch
         print(' -> IDLE')
@@ -108,8 +113,18 @@ Pro-tip: print out state _transistions_.
 def handleBumperG():
     global current_state
 
-    ## Todo: Add code to handle the bumper being presses
-    pass
+    if(current_state == DRIVING_FWD):
+        print('FORWARD -> BACKWARD')
+        current_state = DRIVING_BKWD
+      
+        drive_for(REVERSE, distanceOfTravel, speedOfTravel)
+    
+    elif(current_state == DRIVING_BKWD):
+        print('BACKWARD -> IDLE')
+        current_state = IDLE
+
+    else:
+        print('E-stop')
 
 
 # Here, we give an example of a proper event checker. It checks for the _event_ 
@@ -135,9 +150,8 @@ def handleMotionComplete():
     if(current_state == DRIVING_FWD):
         print('FORWARD -> BACKWARD')
         current_state = DRIVING_BKWD
-
-         ## TODO: You'll need to update the speed and number of turns       
-        drive_for(REVERSE, 5, 60)
+      
+        drive_for(REVERSE, distanceOfTravel, speedOfTravel)
     
     elif(current_state == DRIVING_BKWD):
         print('BACKWARD -> IDLE')
@@ -148,10 +162,27 @@ def handleMotionComplete():
 
 
 ## TODO: Add a checker for the reflectance sensor
-## See checkMotionComplete() for a good example
+def checkReflectanceTriggered():
+    if reflectanceSensor.value() == 123: #Check value for triggered
+        return True
+    return False
 
-## TODO: Add a handler for when the reflectance sensor triggers
+## Handler for when the reflectance sensor triggers
+def handleReflectanceTriggered():
+    global current_state
+    
+    if(current_state == DRIVING_FWD):
+        print('FORWARD -> BACKWARD')
+        current_state = DRIVING_BKWD
+      
+        drive_for(REVERSE, distanceOfTravel, speedOfTravel)
+    
+    elif(current_state == DRIVING_BKWD):
+        print('BACKWARD -> IDLE')
+        current_state = IDLE
 
+    else:
+        print('E-stop')
 
 """
 The line below makes use of VEX's built-in event management. Basically, we set up a "callback", 
@@ -161,8 +192,8 @@ _without you having to do anything else_.
 
 """
 controller_1.buttonL1.pressed(handleLeft1Button)
-
-## TODO: Add event callback for bumper
+  
+bumperSwitch.pressed(handleBumperG)
 
 """
 Note that the main loop only checks for the completed motion. The button press is handled by 
@@ -173,4 +204,4 @@ while True:
     if(checkMotionComplete()): handleMotionComplete()
 
 ## TODO: Add various checkers/handlers; print ultrasonic; etc. See handout.
-print("HI")
+    if(checkReflectanceTriggered()): handleReflectanceTriggered()
