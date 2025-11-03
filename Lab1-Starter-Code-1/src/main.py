@@ -1,14 +1,14 @@
 #region VEXcode Generated Robot Configuration
 from vex import *
-import os
+import urandom
 import math
 
 # Brain should be defined by default
 brain =Brain()
 
 # Robot configuration code
-left_motor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
-right_motor = Motor(Ports.PORT10, GearSetting.RATIO_18_1, True)
+left_motor = Motor(Ports.PORT2, GearSetting.RATIO_18_1, False)
+right_motor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, True)
 controller_1 = Controller(PRIMARY)
 
 # wait for rotation sensor to fully initialize
@@ -19,7 +19,7 @@ wait(30, MSEC)
 def initializeRandomSeed():
     wait(100, MSEC)
     random = brain.battery.voltage(MV) + brain.battery.current(CurrentUnits.AMP) * 100 + brain.timer.system_high_res()
-    os.urandom.seed(int(random))
+    urandom.seed(int(random))
       
 # Set random seed 
 initializeRandomSeed()
@@ -61,27 +61,28 @@ TURN_LEFT = 4
 ARM_UP = 5
 ARM_DOWN = 6
 
-distanceOfTravel = 1128 #in degrees approx. 1m
-speedOfTravel = 18.7984 #in RPM approx. 10 cm/s
+#5 Turns equivalent to diameter of the 4in wheels
+distanceOfTravel = 5 #in turns approx. 1m
+speedOfTravel = 150 #in RPM approx. 10 cm/s
 
 # start out in the idle state
 current_state = IDLE
 
 # Bumper
-bumperSwitch = Bumper(Ports.PORT8) #Check port number
+bumperSwitch = Bumper(brain.three_wire_port.g) #Check port number
 
 # Reflectance
-reflectanceSensor = Line(Ports.PORT7) #Check port number
+reflectanceSensor = Line(brain.three_wire_port.a) #Check port number
 
 # Rangefinder
-rangefinder = Sonar(Ports.PORT6) #Check port number
+rangefinder = Sonar(brain.three_wire_port.e) #Check port number
 
-def drive_for(direction, degrees, speed):
-    left_motor.set_velocity(speed, RPM);
-    left_motor.spin_for(direction, degrees, DEGREES, wait = False)
+def drive_for(direction, turns, speed):
+    left_motor.set_velocity(speed, RPM)
+    left_motor.spin_for(direction, turns, TURNS, wait = False)
 
-    right_motor.set_velocity(speed, RPM);
-    right_motor.spin_for(direction, degrees, DEGREES, wait = False)
+    right_motor.set_velocity(speed, RPM)
+    right_motor.spin_for(direction, turns, TURNS, wait = False)
 
 """
 Pro-tip: print out state _transistions_.
@@ -204,5 +205,5 @@ while True:
     if(checkMotionComplete()): handleMotionComplete()
 
 ## TODO: Add various checkers/handlers; print ultrasonic; etc. See handout.
-    if(checkReflectanceTriggered()): handleReflectanceTriggered()
-    print("Distance: " + str(rangefinder.distance()))
+    #if(checkReflectanceTriggered()): handleReflectanceTriggered()
+    #print("Ultrasonic Distance: ", rangefinder.distance(DistanceUnits.MM), " mm")
