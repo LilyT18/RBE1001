@@ -3,7 +3,7 @@ from vex import *
 import math
 
 # Brain should be defined by default
-brain =Brain()
+brain = Brain()
 
 # Robot configuration code
 left_motor = Motor(Ports.PORT2, GearSetting.RATIO_18_1, False)
