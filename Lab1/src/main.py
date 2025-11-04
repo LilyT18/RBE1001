@@ -206,5 +206,5 @@ while True:
 
 ## TODO: Add various checkers/handlers; print ultrasonic; etc. See handout.
     if(checkReflectanceTriggered()): handleReflectanceTriggered()
-    print("Reflectance Sensor Value: ", reflectanceSensor.value())
-    #print("Ultrasonic Distance: ", rangefinder.distance(DistanceUnits.MM), " mm")
+    #print("Reflectance Sensor Value: ", reflectanceSensor.value())
+    print("Ultrasonic Distance: ", rangefinder.distance(DistanceUnits.MM), " mm")
