@@ -1,6 +1,6 @@
 #region VEXcode Generated Robot Configuration
 from vex import *
-import urandom
+#import urandom
 import math
 
 # Brain should be defined by default
@@ -14,7 +14,7 @@ controller_1 = Controller(PRIMARY)
 # wait for rotation sensor to fully initialize
 wait(30, MSEC)
 
-
+'''
 # Make random actually random
 def initializeRandomSeed():
     wait(100, MSEC)
@@ -23,7 +23,7 @@ def initializeRandomSeed():
       
 # Set random seed 
 initializeRandomSeed()
-
+'''
 
 def play_vexcode_sound(sound_name):
     # Helper to make playing sounds from the V5 in VEXcode easier and

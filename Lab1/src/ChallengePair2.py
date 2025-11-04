@@ -14,15 +14,6 @@ controller_1 = Controller(PRIMARY)
 # wait for rotation sensor to fully initialize
 wait(30, MSEC)
 
-# Make random actually random
-#def initializeRandomSeed():
- #   wait(100, MSEC)
-  #  random = brain.battery.voltage(MV) + brain.battery.current(CurrentUnits.AMP) * 100 + brain.timer.system_high_res()
-   # urandom.seed(int(random))
-      
-# Set random seed 
-#initializeRandomSeed()
-
 # add a small delay to make sure we don't print in the middle of the REPL header
 wait(200, MSEC)
 # clear the console to make sure we don't have the REPL in the console
@@ -54,20 +45,14 @@ ARM_UP = 5
 ARM_DOWN = 6
 
 #5 Turns equivalent to diameter of the 4in wheels
-distanceOfTravel = float("inf") #in turns approx. 1m
+distanceOfTravel = 20 #in turns
 speedOfTravel = 150 #in RPM
 
 # start out in the idle state
 current_state = IDLE
 
-# Bumper
-bumperSwitch = Bumper(brain.three_wire_port.g) #Check port number
-
-# Reflectance
-reflectanceSensor = Line(brain.three_wire_port.a) #Check port number
-
-# Rangefinder
-rangefinder = Sonar(brain.three_wire_port.e) #Check port number
+# Declaring Rangefinder
+rangefinder = Sonar(brain.three_wire_port.c) #Check port number
 
 # Helper function to drive both motors in the same direction
 def drive_for(direction, turns, speed):
@@ -86,31 +71,13 @@ def handleLeft1Button():
         print('IDLE -> FORWARD')
         current_state = DRIVING_FWD
         
-        drive_for(FORWARD, distanceOfTravel, speedOfTravel)
+        drive_for(REVERSE, distanceOfTravel, speedOfTravel)
         
     else: # in any other state, the button acts as a kill switch
         print(' -> IDLE')
         current_state = IDLE
         left_motor.stop()
         right_motor.stop()
-
-# Handler for the bumper switch
-def handleBumperG():
-    global current_state
-
-    if(current_state == DRIVING_FWD):
-        print('FORWARD -> BACKWARD')
-        current_state = DRIVING_BKWD
-      
-        drive_for(REVERSE, distanceOfTravel, speedOfTravel)
-    
-    elif(current_state == DRIVING_BKWD):
-        print('BACKWARD -> IDLE')
-        current_state = IDLE
-
-    else:
-        print('E-stop')
-
 
 # Checks for the _event_ of stopping (not just if the robot is stopped).
 wasMoving = False
@@ -132,58 +99,55 @@ def handleMotionComplete():
     global current_state
 
     if(current_state == DRIVING_FWD):
-        print('FORWARD -> BACKWARD')
-        current_state = DRIVING_BKWD
-      
-        drive_for(REVERSE, distanceOfTravel, speedOfTravel)
-    
-    elif(current_state == DRIVING_BKWD):
-        print('BACKWARD -> IDLE')
+        print('FORWARD -> HOOK_BASKET')
+        current_state = HOOK_BASKET
+
+        hookBasket()
+
+    elif(current_state == HOOK_BASKET):
+        print('HOOK_BASKET -> UNHOOK_BASKET')
+        current_state = UNHOOK_BASKET 
+           
+    elif(current_state == UNHOOK_BASKET):
+        print('UNHOOK_BASKET -> IDLE')
         current_state = IDLE
 
-    else:
-        print('E-stop') # Should print when button is used as E-stop
 
-
-## Checker for the reflectance sensor
-wasTriggered = False
-def checkReflectanceTriggered():
-    global wasTriggered
-
-    retVal = False
-
-    isTriggered = reflectanceSensor.value() < 2600 #Value might have to be adjusted
-
-    if(wasTriggered and not isTriggered):
-        retVal = True
-
-    wasTriggered = isTriggered
-    return retVal
+# Checker for the reflectance sensor
+def checkRangeFinderDistance():
+    if(rangefinder.distance(MM) < 55): #Need to test number
+        return True
+    return False
 
 ## Handler for when the reflectance sensor triggers
-def handleReflectanceTriggered():
+def handleRangeFinderDistance():
     global current_state
     
     if(current_state == DRIVING_FWD):
-        print('FORWARD -> BACKWARD')
-        current_state = DRIVING_BKWD
-      
-        drive_for(REVERSE, distanceOfTravel, speedOfTravel)
-    
-    elif(current_state == DRIVING_BKWD):
-        print('BACKWARD -> IDLE')
-        current_state = IDLE
+        print('FORWARD -> HOOK_BASKET')
+        current_state = HOOK_BASKET
 
-    else:
-        print('E-stop')
+        hookBasket()
+        
+def hookBasket():
+    left_motor.stop()
+    right_motor.stop()
+    arm_motor.set_velocity(50, RPM)
+    arm_motor.spin_for(REVERSE, 400, DEGREES, wait = True)
+    drive_for(FORWARD, 3, speedOfTravel)
+    wait(1000, MSEC)
+    arm_motor.spin_for(FORWARD, 70, DEGREES, wait = True)
+    wait(5000, MSEC)
+    print(arm_motor.torque())
+
+def returnArmToStartPosition():
+    arm_motor.spin_for(FORWARD, 330, DEGREES, wait = True)
 
 
 controller_1.buttonL1.pressed(handleLeft1Button)
-  
-bumperSwitch.pressed(handleBumperG)
-
+controller_1.buttonL2.pressed(returnArmToStartPosition)
 
 # The main loop
 while True:
     if(checkMotionComplete()): handleMotionComplete()
-    if(checkReflectanceTriggered()): handleReflectanceTriggered()
+    if(checkRangeFinderDistance()): handleRangeFinderDistance()
