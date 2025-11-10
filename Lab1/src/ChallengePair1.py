@@ -50,9 +50,14 @@ speedOfTravel = 150 #in RPM
 
 # start out in the idle state
 current_state = IDLE
+print("Running Ilakkiya's code")
 
 # Declaring Rangefinder
 rangefinder = Sonar(brain.three_wire_port.c) #Check port number
+
+#lowering arm beforehand 
+arm_motor.set_velocity(50, RPM)
+arm_motor.spin_for(REVERSE, 420, DEGREES, wait = True)
 
 # Helper function to drive both motors in the same direction
 def drive_for(direction, turns, speed):
@@ -132,9 +137,9 @@ def handleRangeFinderDistance():
 def hookBasket():
     left_motor.stop()
     right_motor.stop()
-    arm_motor.set_velocity(50, RPM)
-    arm_motor.spin_for(REVERSE, 400, DEGREES, wait = True)
-    drive_for(FORWARD, 3, speedOfTravel)
+    # arm_motor.set_velocity(50, RPM)
+    # arm_motor.spin_for(REVERSE, 400, DEGREES, wait = True)
+    #drive_for(FORWARD, 3, speedOfTravel)
     wait(1000, MSEC)
     arm_motor.spin_for(FORWARD, 70, DEGREES, wait = True)
     wait(5000, MSEC)

@@ -12,7 +12,7 @@
 		"slot": 2,
 		"sdkVersion": "V5_1_0_1_25",
 		"python": {
-			"main": "src/ChallengePair2.py"
+			"main": "src/ChallengePair1.py"
 		}
 	}
 }
