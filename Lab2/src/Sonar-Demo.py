@@ -61,10 +61,10 @@ robotState = ROBOT_IDLE
 # Controller
 controller = Controller()
 
-left_motor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, True)
-right_motor = Motor(Ports.PORT10, GearSetting.RATIO_18_1, False)
+left_motor = Motor(Ports.PORT2, GearSetting.RATIO_18_1, True)
+right_motor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
 
-Kp = 0 ## TODO: Pick a Kp to start; then adjust to get good performance
+Kp = 10 ## TODO: Pick a Kp to start; then adjust to get good performance
 
 ## Sonar timer handler. Note that we check the state and act accordingly
 def handleSonarTimer():
@@ -73,10 +73,10 @@ def handleSonarTimer():
         print(distance)
 
         # TODO: Define the error
-        distance_error = 0
+        distance_error = 5 - distance
 
         # TODO: Calculate the effor from the error
-        driving_effort = 0
+        driving_effort = Kp * distance_error
                 
         # TODO: Control the motor speeds 
         left_motor.spin(FORWARD, driving_effort, RPM)
