@@ -7,7 +7,7 @@
 		"creationDate": "Mon, 10 Nov 2025 18:22:54 GMT",
 		"language": "python",
 		"python": {
-			"main": "DesignB.py"
+			"main": "src/DesignB.py"
 		},
 		"sdkVersion": "V5_1_0_1_25"
 	},
