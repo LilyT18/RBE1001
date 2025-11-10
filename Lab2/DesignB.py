@@ -62,6 +62,7 @@ def handleLeft1Button():
 
 def handleBumperG():
     global current_state
+    global countNumTurns
 
     if(current_state == DRVFWD and countNumTurns < 3):
         print('FORWARD -> TURNRIGHT')
@@ -74,6 +75,7 @@ def handleBumperG():
         current_state = DRVFWD
         
         sonarTimer.event(handleSonarTimer, 50)
+        countNumTurns += 1
 
     elif(current_state == TURNLEFT):
         print('TURNLEFT -> FORWARD')
@@ -104,6 +106,7 @@ def checkMotionComplete():
 
 def handleMotionComplete():
     global current_state
+    global countNumTurns
 
     if(current_state == DRVFWD and countNumTurns < 3):
         print('FORWARD -> TURNRIGHT')
@@ -116,6 +119,7 @@ def handleMotionComplete():
         current_state = DRVFWD
         
         sonarTimer.event(handleSonarTimer, 50)
+        countNumTurns += 1
 
     elif(current_state == TURNLEFT):
         print('TURNLEFT -> FORWARD')
@@ -136,9 +140,9 @@ def checkDistanceTriggered():
         return True
     return False
 
-## Handler for when the reflectance sensor triggers
 def handleReflectanceTriggered():
     global current_state
+    global countNumTurns
     
     if(current_state == DRVFWD and countNumTurns < 3):
         print('FORWARD -> TURNRIGHT')
@@ -151,6 +155,7 @@ def handleReflectanceTriggered():
         current_state = DRVFWD
         
         sonarTimer.event(handleSonarTimer, 50)
+        countNumTurns += 1
 
     elif(current_state == TURNLEFT):
         print('TURNLEFT -> FORWARD')
