@@ -5,12 +5,12 @@ controller = Controller()
 
 leftMotor = Motor(Ports.PORT2, GearSetting.RATIO_18_1, False)
 rightMotor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, True)
-distanceSensor = Sonar(Ports.PORT9)#Check port number
+distanceSensor = Sonar(brain.three_wire_port.e)#Check port number
 
 countNumTurns = 0
 
 distanceOfTravel = 2 # in rotations
-speedOfTravel = 30 # in RPM
+speedOfTravel = 70 # in RPM
 
 #States
 IDLE = 0
@@ -18,31 +18,31 @@ DRVFWD = 1
 TURNRIGHT = 2
 TURNLEFT = 3
 
-currentState = IDLE
+current_state = IDLE
 
 def turn(direction):
-    if direction == "RIGHT":
-        leftMotor.spin_for(FORWARD, 0.5, TURNS, 50, RPM)
-    elif direction == "LEFT":
-        rightMotor.spin_for(FORWARD, 0.5, TURNS, 50, RPM)
+    global countNumTurns
+    countNumTurns += 1
+    leftMotor.set_velocity(speedOfTravel, RPM)
+    #left_motor.spin_for(direction, turns, TURNS, wait = False)
 
+    rightMotor.set_velocity(speedOfTravel, RPM)
+    #right_motor.spin_for(direction, turns, TURNS, wait = False)
+    if direction == "LEFT":
+        leftMotor.spin_for(FORWARD, 5, TURNS, 80, RPM)
+        rightMotor.spin_for(REVERSE, 5, TURNS, 80, RPM)
+    elif direction == "RIGHT":
+        rightMotor.spin_for(FORWARD, 7.25, TURNS, 80, RPM)
+        #leftMotor.spin_for(REVERSE, 5, TURNS, 80, RPM)
+        
 Kp = 10
 
-def handleSonarTimer():
-    if(currentState == DRVFWD):
-        distance = distanceSensor.distance(MM) / 10
-        print(distance)
+def drive():
+    leftMotor.set_velocity(speedOfTravel, RPM)
+    leftMotor.spin(FORWARD)
 
-        distance_error = 10 - distance
-
-        driving_effort = Kp * distance_error
-        
-        leftMotor.spin(FORWARD, driving_effort, RPM)
-        rightMotor.spin(FORWARD, driving_effort, RPM)
-
-    sonarTimer.event(handleSonarTimer, 50)
-
-sonarTimer = Timer()
+    rightMotor.set_velocity(speedOfTravel, RPM)
+    rightMotor.spin(FORWARD)
 
 def handleLeft1Button():
     global current_state
@@ -52,7 +52,7 @@ def handleLeft1Button():
         print('IDLE -> FORWARD')
         current_state = DRVFWD
         
-        sonarTimer.event(handleSonarTimer, 50)
+        drive()
         
     else:
         print(' -> IDLE')
@@ -63,27 +63,22 @@ def handleLeft1Button():
 def handleBumperG():
     global current_state
     global countNumTurns
-
-    if(current_state == DRVFWD and countNumTurns < 3):
-        print('FORWARD -> TURNRIGHT')
-        current_state = TURNRIGHT
-      
-        turn("RIGHT")
+    
+    print('Bumper G Pressed')
+    
+    if(countNumTurns >= 3):
+        print(' -> IDLE')
+        current_state = IDLE
+        leftMotor.stop()
+        rightMotor.stop()
     
     elif(current_state == TURNRIGHT):
         print('TURNRIGHT -> FORWARD')
         current_state = DRVFWD
         
-        sonarTimer.event(handleSonarTimer, 50)
-        countNumTurns += 1
-
-    elif(current_state == TURNLEFT):
-        print('TURNLEFT -> FORWARD')
-        current_state = DRVFWD
-        
-        turn("LEFT")
+        drive()
     
-    elif(current_state == DRVFWD and countNumTurns >= 3):
+    elif(current_state == DRVFWD):
         print('FORWARD -> IDLE')
         current_state = IDLE
         
@@ -107,8 +102,15 @@ def checkMotionComplete():
 def handleMotionComplete():
     global current_state
     global countNumTurns
+    print("Handle Motion Complete")
 
-    if(current_state == DRVFWD and countNumTurns < 3):
+    if(countNumTurns >= 3):
+        print(' -> IDLE')
+        current_state = IDLE
+        leftMotor.stop()
+        rightMotor.stop()
+
+    elif(current_state == DRVFWD):
         print('FORWARD -> TURNRIGHT')
         current_state = TURNRIGHT
       
@@ -118,60 +120,35 @@ def handleMotionComplete():
         print('TURNRIGHT -> FORWARD')
         current_state = DRVFWD
         
-        sonarTimer.event(handleSonarTimer, 50)
-        countNumTurns += 1
-
-    elif(current_state == TURNLEFT):
-        print('TURNLEFT -> FORWARD')
-        current_state = DRVFWD
-        
-        turn("LEFT")
+        drive()
     
-    elif(current_state == DRVFWD and countNumTurns >= 3):
+    elif(current_state == DRVFWD):
         print('FORWARD -> IDLE')
         current_state = IDLE
-        
-    else:
-        print('E-stop')
 
 
 def checkDistanceTriggered():
-    if distanceSensor.distance(MM) < 10: #Check value for triggered
+    if (distanceSensor.distance(MM) < 225): #Check value for triggered
         return True
     return False
 
-def handleReflectanceTriggered():
+def handleDistanceTriggered():
     global current_state
-    global countNumTurns
+    print("Distance Triggered")
     
-    if(current_state == DRVFWD and countNumTurns < 3):
+    if(current_state == DRVFWD):
         print('FORWARD -> TURNRIGHT')
         current_state = TURNRIGHT
+        
+        leftMotor.stop()
+        rightMotor.stop()
+        print(countNumTurns)
       
         turn("RIGHT")
-    
-    elif(current_state == TURNRIGHT):
-        print('TURNRIGHT -> FORWARD')
-        current_state = DRVFWD
-        
-        sonarTimer.event(handleSonarTimer, 50)
-        countNumTurns += 1
-
-    elif(current_state == TURNLEFT):
-        print('TURNLEFT -> FORWARD')
-        current_state = DRVFWD
-        
-        turn("LEFT")
-    
-    elif(current_state == DRVFWD and countNumTurns >= 3):
-        print('FORWARD -> IDLE')
-        current_state = IDLE
-        
-    else:
-        print('E-stop')
+    handleMotionComplete()
 
 controller.buttonL1.pressed(handleLeft1Button)
 
 while True:
     if(checkMotionComplete()): handleMotionComplete()
-    if(checkDistanceTriggered()): handleReflectanceTriggered()
+    if(checkDistanceTriggered()): handleDistanceTriggered()
