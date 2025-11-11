@@ -7,6 +7,7 @@ leftMotor = Motor(Ports.PORT2, GearSetting.RATIO_18_1, False)
 rightMotor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, True)
 left_sensor = Line(brain.three_wire_port.b)
 right_sensor = Line(brain.three_wire_port.a)
+distanceSensor = Sonar(brain.three_wire_port.e)
 
 countNumTurns = 0
 
@@ -15,30 +16,33 @@ speedOfTravel = 30 # in RPM
 
 #States
 IDLE = 0
-DRVFWD = 1
-TURNRIGHT = 2
-TURNLEFT = 3
+LINEFOLLOWING = 1
+TURNING = 2
 
-current_state = DRVFWD
+current_state = IDLE
 
 def turn(direction):
-    if direction == "RIGHT":
-        leftMotor.spin_for(FORWARD, 0.5, TURNS, 50, RPM)
-    elif direction == "LEFT":
-        rightMotor.spin_for(FORWARD, 0.5, TURNS, 50, RPM)
+    if direction == "LEFT":
+        leftMotor.spin_for(FORWARD, 7, TURNS, 50, RPM)
+    elif direction == "RIGHT":
+        rightMotor.spin_for(FORWARD, 7, TURNS, 50, RPM)
 
-Kp = 10
+Kp = .8
 
 def handleSonarTimer():
-    if(current_state == DRVFWD):
-        if (right_sensor.reflectivity() > 1500):
+    if(current_state == LINEFOLLOWING):
+        '''
+        if (right_sensor.reflectivity() > 10):
             right = 1
         else:
             right = 0
-        if (left_sensor.reflectivity() > 1500):
+        if (left_sensor.reflectivity() > 10):
             left = 1
         else:
             left = 0
+            '''
+        right = right_sensor.reflectivity()
+        left = left_sensor.reflectivity()
 
         print(right, left)
 
@@ -47,10 +51,13 @@ def handleSonarTimer():
         driving_effort = Kp * distance_error
         print(driving_effort)
 
-        base_speed = 200
+        base_speed = 100
         
-        leftMotor.spin(FORWARD, base_speed - driving_effort, RPM)
-        rightMotor.spin(FORWARD, base_speed + driving_effort, RPM)
+        leftMotor.set_velocity(base_speed - driving_effort, RPM)
+        leftMotor.spin(FORWARD)
+
+        rightMotor.set_velocity(base_speed + driving_effort, RPM)
+        rightMotor.spin(FORWARD)
 
     sonarTimer.event(handleSonarTimer, 50)
 
@@ -61,8 +68,8 @@ def handleLeft1Button():
     print('Left 1 Button Pressed')
 
     if(current_state == IDLE):
-        print('IDLE -> FORWARD')
-        current_state = DRVFWD
+        print('IDLE -> LINEFOLLOWING')
+        current_state = LINEFOLLOWING
         
         sonarTimer.event(handleSonarTimer, 50)
         
@@ -76,28 +83,24 @@ def handleBumperG():
     global current_state
     global countNumTurns
 
-    if(current_state == DRVFWD and countNumTurns < 3):
-        print('FORWARD -> TURNRIGHT')
-        current_state = TURNRIGHT
+    if(current_state == LINEFOLLOWING and countNumTurns >= 3):
+        print('LINEFOLLOWING -> IDLE')
+        current_state = IDLE
+        leftMotor.stop()
+        rightMotor.stop()
+    
+    elif(current_state == LINEFOLLOWING):
+        print('LINEFOLLOWING -> TURNING')
+        current_state = TURNING
       
         turn("RIGHT")
     
-    elif(current_state == TURNRIGHT):
-        print('TURNRIGHT -> FORWARD')
-        current_state = DRVFWD
+    elif(current_state == TURNING):
+        print('TURNING -> LINEFOLLOWING')
+        current_state = LINEFOLLOWING   
         
         sonarTimer.event(handleSonarTimer, 50)
         countNumTurns += 1
-
-    elif(current_state == TURNLEFT):
-        print('TURNLEFT -> FORWARD')
-        current_state = DRVFWD
-        
-        turn("LEFT")
-    
-    elif(current_state == DRVFWD and countNumTurns >= 3):
-        print('FORWARD -> IDLE')
-        current_state = IDLE
         
     else:
         print('E-stop')
@@ -120,70 +123,50 @@ def handleMotionComplete():
     global current_state
     global countNumTurns
 
-    if(current_state == DRVFWD and countNumTurns < 3):
-        print('FORWARD -> TURNRIGHT')
-        current_state = TURNRIGHT
+    if(current_state == LINEFOLLOWING and countNumTurns >= 3):
+        print('LINEFOLLOWING -> IDLE')
+        current_state = IDLE
+        leftMotor.stop()
+        rightMotor.stop()
+
+    elif(current_state == LINEFOLLOWING):
+        print('LINEFOLLOWING -> TURNING')
+        current_state = TURNING 
       
         turn("RIGHT")
     
-    elif(current_state == TURNRIGHT):
-        print('TURNRIGHT -> FORWARD')
-        current_state = DRVFWD
+    elif(current_state == TURNING):
+        print('TURNING -> LINEFOLLOWING')
+        current_state = LINEFOLLOWING   
         
         sonarTimer.event(handleSonarTimer, 50)
         countNumTurns += 1
-
-    elif(current_state == TURNLEFT):
-        print('TURNLEFT -> FORWARD')
-        current_state = DRVFWD
-        
-        turn("LEFT")
-    
-    elif(current_state == DRVFWD and countNumTurns >= 3):
-        print('FORWARD -> IDLE')
-        current_state = IDLE
         
     else:
         print('E-stop')
 
 
 def checkDistanceTriggered():
-    if (right_sensor.reflectivity() < 1500 and left_sensor.reflectivity() < 1500): #Check value for triggered
+    if (distanceSensor.distance(MM) < 225): #Check value for triggered
         return True
     return False
 
-def handleReflectanceTriggered():
+def handleDistanceTriggered():
     global current_state
     global countNumTurns
     
-    if(current_state == DRVFWD and countNumTurns < 3):
-        print('FORWARD -> TURNRIGHT')
-        current_state = TURNRIGHT
+    if(current_state == LINEFOLLOWING):
+        print('LINEFOLLOWING -> TURNING')
+        current_state = TURNING
       
+        leftMotor.stop()
+        rightMotor.stop()
         turn("RIGHT")
-    
-    elif(current_state == TURNRIGHT):
-        print('TURNRIGHT -> FORWARD')
-        current_state = DRVFWD
-        
-        sonarTimer.event(handleSonarTimer, 50)
         countNumTurns += 1
-
-    elif(current_state == TURNLEFT):
-        print('TURNLEFT -> FORWARD')
-        current_state = DRVFWD
-        
-        turn("LEFT")
-    
-    elif(current_state == DRVFWD and countNumTurns >= 3):
-        print('FORWARD -> IDLE')
-        current_state = IDLE
-        
-    else:
-        print('E-stop')
+    handleMotionComplete()
 
 controller.buttonL1.pressed(handleLeft1Button)
 
 while True:
     if(checkMotionComplete()): handleMotionComplete()
-    if(checkDistanceTriggered()): handleReflectanceTriggered()
+    if(checkDistanceTriggered()): handleDistanceTriggered()
