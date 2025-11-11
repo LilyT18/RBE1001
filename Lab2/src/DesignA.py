@@ -5,7 +5,8 @@ controller = Controller()
 
 leftMotor = Motor(Ports.PORT2, GearSetting.RATIO_18_1, False)
 rightMotor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, True)
-distanceSensor = Sonar(Ports.PORT9)#Check port number
+left_sensor = Line(brain.three_wire_port.b)
+right_sensor = Line(brain.three_wire_port.a)
 
 countNumTurns = 0
 
@@ -18,7 +19,7 @@ DRVFWD = 1
 TURNRIGHT = 2
 TURNLEFT = 3
 
-currentState = IDLE
+current_state = DRVFWD
 
 def turn(direction):
     if direction == "RIGHT":
@@ -29,16 +30,27 @@ def turn(direction):
 Kp = 10
 
 def handleSonarTimer():
-    if(currentState == DRVFWD):
-        distance = distanceSensor.distance(MM) / 10
-        print(distance)
+    if(current_state == DRVFWD):
+        if (right_sensor.reflectivity() > 1500):
+            right = 1
+        else:
+            right = 0
+        if (left_sensor.reflectivity() > 1500):
+            left = 1
+        else:
+            left = 0
 
-        distance_error = 10 - distance
+        print(right, left)
+
+        distance_error = left - right
 
         driving_effort = Kp * distance_error
+        print(driving_effort)
+
+        base_speed = 200
         
-        leftMotor.spin(FORWARD, driving_effort, RPM)
-        rightMotor.spin(FORWARD, driving_effort, RPM)
+        leftMotor.spin(FORWARD, base_speed - driving_effort, RPM)
+        rightMotor.spin(FORWARD, base_speed + driving_effort, RPM)
 
     sonarTimer.event(handleSonarTimer, 50)
 
@@ -136,7 +148,7 @@ def handleMotionComplete():
 
 
 def checkDistanceTriggered():
-    if distanceSensor.distance(MM) < 10: #Check value for triggered
+    if (right_sensor.reflectivity() < 1500 and left_sensor.reflectivity() < 1500): #Check value for triggered
         return True
     return False
 
