@@ -64,28 +64,21 @@ controller = Controller()
 left_motor = Motor(Ports.PORT2, GearSetting.RATIO_18_1, True)
 right_motor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
 
-Kp = 10 ## TODO: Pick a Kp to start; then adjust to get good performance
+Kp = 10
 
-## Sonar timer handler. Note that we check the state and act accordingly
 def handleSonarTimer():
     if(robotState == ROBOT_STANDOFF):
         distance = range_finder_e.distance(MM) / 10
         print(distance)
 
-        # TODO: Define the error
         distance_error = 5 - distance
-
-        # TODO: Calculate the effor from the error
         driving_effort = Kp * distance_error
                 
-        # TODO: Control the motor speeds 
         left_motor.spin(FORWARD, driving_effort, RPM)
         right_motor.spin(FORWARD, driving_effort, RPM)
 
-    ## Don't forget to restart the timer!
     sonarTimer.event(handleSonarTimer, 50)
-
-## The line timer will tell us when to correct the heading
+    
 sonarTimer = Timer()
 
 ## This uses the VEX event machinery, 'automatic' checker-handler
