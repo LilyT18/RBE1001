@@ -19,7 +19,7 @@ controller = Controller()
 rack1 = Motor(Ports.PORT3, GearSetting.RATIO_36_1, False) #Motor 58
 rack2 = Motor(Ports.PORT4, GearSetting.RATIO_36_1, True) #Motor 59
 
-speedOfTravel = 50 #RPM
+speedOfTravel = 80 #RPM
 speedOfRack = 50 #RPM
 
 def drive(direction, speed, turns):
@@ -39,10 +39,14 @@ def rackMove(direction, speed, distance):
 #States
 IDLE = 0
 GOTOSTAGE = 1 #Goes to specific height
-PICKFRUIT = 2 #Drives towards fruit and picks it
+DRIVETOFRUIT = 2
+PICKFRUIT = 3 #Drives towards fruit and picks it
 
 currentState = IDLE
 rackLevel = 0
+levelOne = .75 #Turns
+levelTwo = 2 #Turns
+driveDistance = 2.5 #Turns
 
 wasMoving = False
 def checkMotionComplete():
@@ -50,7 +54,7 @@ def checkMotionComplete():
 
     retVal = False
 
-    isMoving = leftMotor.is_spinning() or rightMotor.is_spinning()
+    isMoving = leftMotor.is_spinning() or rightMotor.is_spinning() or rack1.is_spinning() or rack2.is_spinning()
 
     if(wasMoving and not isMoving):
         retVal = True
@@ -94,6 +98,10 @@ def handleMotionComplete():
     global currentState
 
     if(currentState == GOTOSTAGE):
+        print(' -> DRIVETOFRUIT')
+        currentState = DRIVETOFRUIT
+        driveToFruit(REVERSE)
+    elif(currentState == DRIVETOFRUIT):
         print(' -> PICKFRUIT')
         currentState = PICKFRUIT
         pickFruit()
@@ -105,25 +113,28 @@ def goToStage(stageNum):
     global currentState
     #Need to adjust distance values for different stages
     if(stageNum == 1):
-        rackMove(FORWARD, speedOfRack, 1)
+        rackMove(FORWARD, speedOfRack, levelOne)
     elif(stageNum == 2):
-        rackMove(FORWARD, speedOfRack, 2)
+        rackMove(FORWARD, speedOfRack, levelTwo)
         
 def returnRackToBase(stageNum):
     global currentState
     #Need to adjust distance values for different stages
     if(stageNum == 1):
-        rackMove(REVERSE, speedOfRack, 1)
+        rackMove(REVERSE, speedOfRack, levelOne)
     elif(stageNum == 2):
-        rackMove(REVERSE, speedOfRack, 2)
+        rackMove(REVERSE, speedOfRack, levelTwo)
+
+def driveToFruit(direction):
+    drive(direction, speedOfTravel, driveDistance) #Adjust distance as needed
 
 def pickFruit():
-    drive(FORWARD, speedOfTravel, 1) #Adjust distance as needed
     returnRackToBase(rackLevel)
-    drive(REVERSE, speedOfTravel, 1) #Adjust distance as needed
+    #drive(FORWARD, speedOfTravel, driveDistance) #Adjust distance as needed
     
 controller.buttonL1.pressed(handleLeft1)
 controller.buttonL2.pressed(handleLeft2)
 
 while True:
-    if(checkMotionComplete()): handleMotionComplete()
+    if(checkMotionComplete()): 
+        handleMotionComplete()
