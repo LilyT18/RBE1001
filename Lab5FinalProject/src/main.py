@@ -119,6 +119,7 @@ def returnRobotToBase():
 
 #TODO: Check if code works and test to make sure it works
 #Ilakkiya this is yourssssss
+#You'll need to check the ports of the camera 
 def getColorFromCamera():
     detectedObjects = ai_vision_15.largest_object()
     if(detectedObjects.exists):
