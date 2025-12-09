@@ -11,6 +11,28 @@
 # Bin2 - Orange
 # Bin3 - Purple
 
+# Field Layout
+# NOT DRAWN TO SCALE
+# ----------------------------------------------------------------- #
+#  Robot  |                                                         #
+#  Start  |                                                         #
+# ---------                                                         #
+# 	               _____          _____          _____              #
+# -------	      |Tree |        |Tree |        |Tree |             #
+# 	Bin |         |  1  |        |  2  |        |  3  |             #
+# 	 3  |          -----          -----          -----              #
+# -------	                                                        #
+# 	Bin |                                                           #
+# 	 2  |          _____          _____          _____              #
+# -------	      |Tree |        |Tree |        |Tree |             #
+#   Bin |         |  4  |        |  5  |        |  6  |             #
+#    1  |          -----          -----          -----              # 
+# -------                                                           #
+#                                                                   #
+# ----------------------------------------------------------------- #
+
+
+
 from vex import *
 
 # Brain should be defined by default
@@ -426,8 +448,14 @@ def getColorFromCamera():
 def centerRobotToCameraObject():
     pass
 
+
+#For testing individual functions
+def handleRight1():
+    pass
+
 controller.buttonL1.pressed(handleLeft1)
 controller.buttonL2.pressed(handleLeft2)
+controller.buttonR1.pressed(handleRight1)
 
 while True:
     if(checkMotionComplete()): 
