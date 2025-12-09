@@ -7,7 +7,10 @@
 #                                                                              #
 # ---------------------------------------------------------------------------- #
 
-# Library imports
+# Bin1 - Green
+# Bin2 - Orange
+# Bin3 - Purple
+
 from vex import *
 
 # Brain should be defined by default
@@ -28,6 +31,7 @@ claw = Motor(Ports.PORT5, GearSetting.RATIO_18_1, False) #Motor 57
 
 speedOfTravel = 80 #RPM
 speedOfRack = 30 #RPM
+rackTravelHeight = 1 #Turns
 speedOfClaw = 20 #RPM
 moveClawDistance = 0.5 #Turns
 
@@ -47,12 +51,12 @@ def rackMove(direction, speed, distance):
 
 #States
 IDLE = 0
-GOTOTREE = 4 #Goes to spcific tree (1 - 6)
-GOTOSTAGE = 1 #Goes to specific heig
+GOTOTREE = 1 #Goes to spcific tree (1 - 6)
+GOTOSTAGE = 2 #Goes to specific heig
 PICKFRUIT = 3 #Drives towards fruit and picks it
-GOTOBINS = 5 #Based off of current aisle, goes to the bin area
-DEPOSITFRUIT= 6 #Deposits fruit into correct bin
-RETURNTOBASE = 7 #Returns to starting position from bin area
+GOTOBINS = 4 #Based off of current aisle, goes to the bin area
+DEPOSITFRUIT= 5 #Deposits fruit into correct bin
+RETURNTOBASE = 6 #Returns to starting position from bin area
 
 currentState = IDLE
 toFruitDistance = 2.5 #Turns
@@ -82,62 +86,131 @@ def checkMotionComplete():
     wasMoving = isMoving
     return retVal
 
-#TODO: complete handle
-# Define tree 1 stage 1
+# Define tree 1 stage 2
 def handleLeft1():
     global currentState
     global rackLevel
+    global treeNum 
+    
     print("Button L1 Pressed")
-    clawMove(FORWARD, speedOfClaw, moveClawDistance)
+    treeNum = 1
+    
+    if(currentState == IDLE):
+        print("IDLE --> GOTOTREE")
+        currentState = GOTOTREE
+        
+        goToTree(treeNum)
+    else:
+        print(" --> IDLE")
+        currentState = IDLE
+        rightMotor.stop()
+        leftMotor.stop()
+        rack1.stop()
+        rack2.stop()
 
-#TODO: complete handle
 # Define tree 4 stage 1
 def handleLeft2():
     global currentState
     global rackLevel
+    global treeNum
+    
     print("Button L2 Pressed")
-    clawMove(REVERSE, speedOfClaw, moveClawDistance)
+    treeNum = 4
+    
+    if(currentState == IDLE):
+        print("IDLE --> GOTOTREE")
+        currentState = GOTOTREE
+        
+        goToTree(treeNum)
+    else:
+        print(" --> IDLE")
+        currentState = IDLE
+        rightMotor.stop()
+        leftMotor.stop()
+        rack1.stop()
+        rack2.stop()
 
 #TODO: Goes to next state after motion is complete
 def handleMotionComplete():
     global currentState
-    pass
+    
+    if(currentState == GOTOTREE):
+        print("GOTOTREE --> GOTOSTAGE")
+        currentState = GOTOSTAGE
+        
+        goToStage(rackLevel)
+    elif(currentState == GOTOSTAGE):
+        print("GOTOSTAGE --> PICKFRUIT")
+        currentState = PICKFRUIT
+        
+        pickFruit()
+    elif(currentState == PICKFRUIT):
+        print("PICKFRUIT --> GOTOBINS")
+        currentState = GOTOBINS
+        
+        goToBins()
+    elif(currentState == GOTOBINS):
+        print("GOTOBINS --> DEPOSITFRUIT")
+        currentState = DEPOSITFRUIT
+        
+        depositFruit()
+    elif(currentState == DEPOSITFRUIT):
+        print("DEPOSITFRUIT --> RETURNTOBASE")
+        currentState = RETURNTOBASE
+        
+        returnRobotToBase()
+    else:
+        print(" --> IDLE")
+        currentState = IDLE
+        rightMotor.stop()
+        leftMotor.stop()    
+        rack1.stop()
+        rack2.stop()
     
 #Go to specific stage height 
 def goToStage(stageNum):
     global currentState
-    #Need to adjust distance values for different stages
     if(stageNum == 1):
         rackMove(FORWARD, speedOfRack, stageOne)
     elif(stageNum == 2):
         rackMove(FORWARD, speedOfRack, stageTwo)
     
 #Returns rack to initial resting position  
-def returnRackToBase():
+def rackToTravel():
     global rackHeight
-    rackMove(REVERSE, speedOfRack, rackHeight)
-    rackHeight = 0
+    temprack = rackHeight - rackTravelHeight
+    
+    rackMove(REVERSE, speedOfRack, temprack)
+    rackHeight = rackTravelHeight
 
 #Drive toward fruit from set position
-#TODO: Might not be needed figure out
 def driveToFruit(direction):
     drive(direction, speedOfTravel, toFruitDistance) #Adjust distance as needed
 
 #Returns rack to base to pick fruit
 def pickFruit():
+    clawMove(FORWARD, speedOfClaw, moveClawDistance) #Open claw
+    centerRobotToCameraObject() #Ilakkiya's portion
     driveToFruit(FORWARD)
-    returnRackToBase()
+    clawMove(REVERSE, speedOfClaw, moveClawDistance) #Close claw
+    rackToTravel()
   
-#TODO: Needs completed
+#TODO: Test distance
 #Go back to initial position after depositing fruit  
 def returnRobotToBase():
-    pass
-
-#Returns current aisle and row as tuple
-def getAisleRow():
-    global aisleRow
-    
-    return aisleRow / 10, aisleRow % 10
+    ninetyTurn("RIGHT")
+    while True:
+        rightMotor.set_velocity(speedOfTravel, RPM)
+        leftMotor.set_velocity(speedOfTravel, RPM)
+        rightMotor.spin(FORWARD)
+        leftMotor.spin(FORWARD)
+        if(checkDistanceSensing(300)): #Test this distance
+            rightMotor.stop()
+            leftMotor.stop()
+            break
+    ninetyTurn("LEFT")
+    drive(FORWARD, speedOfTravel, 2) #Adjust distance as needed
+    ninetyTurn("LEFT")
 
 #TODO: Needs tuning of numbers
 #Go to specific tree number
@@ -180,6 +253,16 @@ def goToTree(aisleRow):
         ninetyTurn("LEFT")
     else:
         print("Invalid tree number")
+
+#TODO: Write function
+#Go to bin area based off of aisleRow
+def goToBins():
+    pass
+
+#TODO: Needs completed
+#Deposit fruit into correct bin based off of fruitColor
+def depositFruit():
+    pass
 
 #Line tracking function with proportional control
 def lineTracking(distanceFrom):
