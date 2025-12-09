@@ -13,17 +13,23 @@ from vex import *
 # Brain should be defined by default
 brain = Brain()
 
-rightMotor = Motor(Ports.PORT2, GearSetting.RATIO_18_1, False) #TODO: find motor #
-leftMotor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, True) #TODO: find motor #
+rightMotor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False) #Motor 64
+leftMotor = Motor(Ports.PORT2, GearSetting.RATIO_18_1, True) #Motor 63
 controller = Controller()
-rack1 = Motor(Ports.PORT3, GearSetting.RATIO_36_1, False) #Motor 58
-rack2 = Motor(Ports.PORT4, GearSetting.RATIO_36_1, True) #Motor 59
+rack1 = Motor(Ports.PORT4, GearSetting.RATIO_36_1, False) #Motor 59
+rack2 = Motor(Ports.PORT3, GearSetting.RATIO_36_1, True) #Motor 58
 ai_vision_15__Red_Folder = Colordesc(1, 222, 31, 63, 11, 0.48) #TODO: figure out what this means
-ai_vision_15 = AiVision(Ports.PORT15, ai_vision_15__Red_Folder) #TODO: confirm port
-bumper_g = Bumper(brain.three_wire_port.g) #TODO: confirm port
+ai_vision_15 = AiVision(Ports.PORT15, ai_vision_15__Red_Folder) 
+#bumper_g = Bumper(brain.three_wire_port.g) #TODO: confirm 
+leftLine = Line(brain.three_wire_port.a) 
+rightLine = Line(brain.three_wire_port.b) 
+rangeFinder = Sonar(brain.three_wire_port.e) 
+claw = Motor(Ports.PORT5, GearSetting.RATIO_18_1, False) #Motor 57
 
 speedOfTravel = 80 #RPM
-speedOfRack = 50 #RPM
+speedOfRack = 30 #RPM
+speedOfClaw = 20 #RPM
+moveClawDistance = 0.5 #Turns
 
 def drive(direction, speed, turns):
     leftMotor.set_velocity(speed, RPM)
@@ -41,19 +47,25 @@ def rackMove(direction, speed, distance):
 
 #States
 IDLE = 0
-GOTOSTAGE = 1 #Goes to specific height
-IDENTIFYCORRECTBIN = 2 #Uses camera to detect color of bin and match it with the fruit
+GOTOTREE = 4 #Goes to spcific tree (1 - 6)
+GOTOSTAGE = 1 #Goes to specific heig
 PICKFRUIT = 3 #Drives towards fruit and picks it
-GOTOISLE = 4 #Goes to spcific aisle (1, 2, or 3)
 GOTOBINS = 5 #Based off of current aisle, goes to the bin area
 DEPOSITFRUIT= 6 #Deposits fruit into correct bin
 RETURNTOBASE = 7 #Returns to starting position from bin area
 
 currentState = IDLE
-rackLevel = 0
-levelOne = .75 #Turns
-levelTwo = 2 #Turns
 toFruitDistance = 2.5 #Turns
+binNumber = 0
+fruitColor = None
+treeNum = 0
+aisleRow = 0
+arrivedAtLocation = False
+
+rackLevel = 0
+stageOne = .75 #Turns
+stageTwo = 2 #Turns
+rackHeight = 0 #Turns
 
 #Used to detect motion completion
 wasMoving = False
@@ -71,55 +83,179 @@ def checkMotionComplete():
     return retVal
 
 #TODO: complete handle
-# Define stage 1
+# Define tree 1 stage 1
 def handleLeft1():
     global currentState
     global rackLevel
-    
-    pass
+    print("Button L1 Pressed")
+    clawMove(FORWARD, speedOfClaw, moveClawDistance)
 
 #TODO: complete handle
-# Define stage 2
+# Define tree 4 stage 1
 def handleLeft2():
     global currentState
     global rackLevel
-    
-    pass
+    print("Button L2 Pressed")
+    clawMove(REVERSE, speedOfClaw, moveClawDistance)
 
 #TODO: Goes to next state after motion is complete
 def handleMotionComplete():
     global currentState
     pass
-
-        
+    
+#Go to specific stage height 
 def goToStage(stageNum):
     global currentState
     #Need to adjust distance values for different stages
     if(stageNum == 1):
-        rackMove(FORWARD, speedOfRack, levelOne)
+        rackMove(FORWARD, speedOfRack, stageOne)
     elif(stageNum == 2):
-        rackMove(FORWARD, speedOfRack, levelTwo)
+        rackMove(FORWARD, speedOfRack, stageTwo)
     
 #Returns rack to initial resting position  
-def returnRackToBase(stageNum):
-    pass
+def returnRackToBase():
+    global rackHeight
+    rackMove(REVERSE, speedOfRack, rackHeight)
+    rackHeight = 0
 
 #Drive toward fruit from set position
+#TODO: Might not be needed figure out
 def driveToFruit(direction):
     drive(direction, speedOfTravel, toFruitDistance) #Adjust distance as needed
 
 #Returns rack to base to pick fruit
 def pickFruit():
-    returnRackToBase(rackLevel)
+    driveToFruit(FORWARD)
+    returnRackToBase()
   
 #TODO: Needs completed
-#Go back to rack position after depositing fruit  
+#Go back to initial position after depositing fruit  
 def returnRobotToBase():
     pass
+
+#Returns current aisle and row as tuple
+def getAisleRow():
+    global aisleRow
+    
+    return aisleRow / 10, aisleRow % 10
+
+#TODO: Needs tuning of numbers
+#Go to specific tree number
+def goToTree(aisleRow):
+    if(treeNum == 1):
+        ninetyTurn("LEFT")
+        drive(FORWARD, speedOfTravel, 1) #Adjust distance as needed
+        ninetyTurn("RIGHT")
+    elif(treeNum == 2):
+        ninetyTurn("LEFT")
+        drive(FORWARD, speedOfTravel, 5) #Adjust distance as needed
+        #lineTracking(300) #Adjust distance as needed
+        ninetyTurn("RIGHT")
+    elif(treeNum == 3):
+        ninetyTurn("LEFT")
+        drive(FORWARD, speedOfTravel, 10) #Adjust distance as needed
+        #lineTracking(300) #Adjust distance as needed
+        ninetyTurn("RIGHT") 
+    elif(treeNum == 4):
+        ninetyTurn("LEFT")
+        drive(FORWARD, speedOfTravel, 1) #Adjust distance as needed
+        ninetyTurn("RIGHT")
+        lineTracking(300) #Adjust distance as needed
+        ninetyTurn("LEFT")
+    elif(treeNum == 5):
+        ninetyTurn("LEFT")
+        drive(FORWARD, speedOfTravel, 1) #Adjust distance as needed
+        ninetyTurn("RIGHT")
+        lineTracking(100) #Adjust distance as needed
+        ninetyTurn("LEFT")
+        lineTracking(500) #Adjust distance as needed
+        ninetyTurn("LEFT")
+    elif(treeNum == 6):
+        ninetyTurn("LEFT")
+        drive(FORWARD, speedOfTravel, 1) #Adjust distance as needed
+        ninetyTurn("RIGHT")
+        lineTracking(100) #Adjust distance as needed
+        ninetyTurn("LEFT")
+        lineTracking(300) #Adjust distance as needed
+        ninetyTurn("LEFT")
+    else:
+        print("Invalid tree number")
+
+#Line tracking function with proportional control
+def lineTracking(distanceFrom):
+    Kp = 30.0  # Proportional gain, adjust as needed
+    
+    while True:
+        leftDetected = leftLine.value() > 2000  # Adjust threshold as needed (0-100)
+        rightDetected = rightLine.value() > 2000        
+        # Calculate error: positive = too far right, negative = too far left
+        if leftDetected and rightDetected:
+            error = 0
+            leftMotor.set_velocity(speedOfTravel, RPM)
+            rightMotor.set_velocity(speedOfTravel, RPM)
+            
+        elif leftDetected and not rightDetected:
+            error = 1
+            
+        elif not leftDetected and rightDetected:
+            error = -1
+            
+        else:
+            leftMotor.stop()
+            rightMotor.stop()
+            break
+        
+        correction = Kp * error
+        
+        leftMotorSpeed = speedOfTravel - correction
+        rightMotorSpeed = speedOfTravel + correction
+        
+        leftMotor.set_velocity(leftMotorSpeed, RPM)
+        rightMotor.set_velocity(rightMotorSpeed, RPM)
+        
+        leftMotor.spin(FORWARD)
+        rightMotor.spin(FORWARD)
+        
+        wait(10, MSEC)
+        if(checkDistanceSensing(distanceFrom)):
+            leftMotor.stop()
+            rightMotor.stop()
+            break
+
+#Distance tracking function
+#Distance less than distanceFrommm returns True
+def checkDistanceSensing(distanceFrom):
+    if(rangeFinder.distance(DistanceUnits.MM) < distanceFrom):
+        return True
+    else:
+        return False
+
+#90 degree turn function
+def ninetyTurn(direction):
+    if(direction == "RIGHT"):
+        leftMotor.set_velocity(speedOfTravel, RPM)
+        rightMotor.set_velocity(speedOfTravel, RPM)
+        leftMotor.spin_for(FORWARD, 3.625, TURNS, wait = True) #Adjust turns as needed
+        rightMotor.spin_for(REVERSE, 3.625, TURNS, wait = True) #Adjust turns as needed
+    elif(direction == "LEFT"):
+        leftMotor.set_velocity(speedOfTravel, RPM)
+        rightMotor.set_velocity(speedOfTravel, RPM)
+        leftMotor.spin_for(REVERSE, 3.625, TURNS, wait = True) #Adjust turns as needed
+        rightMotor.spin_for(FORWARD, 3.625, TURNS, wait = True) #Adjust turns as needed
+    else:
+        print("Invalid turn direction")
+
+#Open and close claw function
+#Forward --> open, Reverse --> close
+def clawMove(direction, speed, distance):
+    claw.set_velocity(speed, RPM)
+    claw.spin_for(direction, distance, TURNS, wait = True)
 
 #TODO: Check if code works and test to make sure it works
 #Ilakkiya this is yourssssss
 #You'll need to check the ports of the camera 
+#Use the camera to return the color being detected
+#Three colors: green, orange, and purple
 def getColorFromCamera():
     detectedObjects = ai_vision_15.largest_object()
     if(detectedObjects.exists):
