@@ -60,7 +60,6 @@ RETURNTOBASE = 6 #Returns to starting position from bin area
 
 currentState = IDLE
 toFruitDistance = 2.5 #Turns
-binNumber = 0
 fruitColor = None
 treeNum = 0
 aisleRow = 0
@@ -130,7 +129,7 @@ def handleLeft2():
         rack1.stop()
         rack2.stop()
 
-#TODO: Goes to next state after motion is complete
+#Goes to next state after motion is complete
 def handleMotionComplete():
     global currentState
     
@@ -195,7 +194,7 @@ def pickFruit():
     clawMove(REVERSE, speedOfClaw, moveClawDistance) #Close claw
     rackToTravel()
   
-#TODO: Test distance
+#TODO: Test/tune function
 #Go back to initial position after depositing fruit  
 def returnRobotToBase():
     ninetyTurn("RIGHT")
@@ -212,7 +211,7 @@ def returnRobotToBase():
     drive(FORWARD, speedOfTravel, 2) #Adjust distance as needed
     ninetyTurn("LEFT")
 
-#TODO: Needs tuning of numbers
+#TODO: Test/tune function
 #Go to specific tree number
 def goToTree(aisleRow):
     if(treeNum == 1):
@@ -254,15 +253,91 @@ def goToTree(aisleRow):
     else:
         print("Invalid tree number")
 
-#TODO: Write function
+def getAisleRow(aisleRowNum):
+    return aisleRowNum/10, aisleRowNum%10
+
+#TODO: Test/Tune function
+#Go to tree based off of aisle row
+def goToAisleRow():
+    aisle, row = getAisleRow(aisleRow)
+    if(aisle == 1):
+        ninetyTurn("LEFT")
+        goToRow(row)
+    elif(aisle == 2):
+        ninetyTurn("LEFT")
+        drive(FORWARD, speedOfTravel, 1) #Adjust distance as needed
+        ninetyTurn("RIGHT")
+        while True:
+            rightMotor.set_velocity(speedOfTravel, RPM)
+            leftMotor.set_velocity(speedOfTravel, RPM)
+            rightMotor.spin(FORWARD)
+            leftMotor.spin(FORWARD)
+            if(checkDistanceSensing(500)): #Test this distance
+                rightMotor.stop()
+                leftMotor.stop()
+                break
+        ninetyTurn("LEFT")
+        goToRow(row)
+    elif(aisle == 3):
+        ninetyTurn("LEFT")
+        drive(FORWARD, speedOfTravel, 1) #Adjust distance as needed
+        ninetyTurn("RIGHT")
+        while True:
+            rightMotor.set_velocity(speedOfTravel, RPM)
+            leftMotor.set_velocity(speedOfTravel, RPM)
+            rightMotor.spin(FORWARD)
+            leftMotor.spin(FORWARD)
+            if(checkDistanceSensing(300)): #Test this distance
+                rightMotor.stop()
+                leftMotor.stop()
+                break
+        ninetyTurn("LEFT")
+        goToRow(row)
+    else:
+        print("Invalid aisle number")
+
+#TODO: Test/tune function
+#Go to specific row in aisle
+def goToRow(row):
+    if(row == 1):
+        drive(FORWARD, speedOfTravel, 1)
+    elif(row == 2):
+        drive(FORWARD, speedOfTravel, 5) 
+    elif(row == 3):
+        drive(FORWARD, speedOfTravel, 10) 
+    elif(row == 4):
+        drive(FORWARD, speedOfTravel, 15) 
+    else:
+        print("Invalid row number")
+
+#TODO: Test/tune function
 #Go to bin area based off of aisleRow
 def goToBins():
     pass
 
-#TODO: Needs completed
+#TODO: Test/Tune function
 #Deposit fruit into correct bin based off of fruitColor
 def depositFruit():
-    pass
+    if(fruitColor == "GREEN"):
+        drive(FORWARD, speedOfTravel, 2) #Adjust distance as needed
+        ninetyTurn("LEFT")
+        drive(FORWARD, speedOfTravel, 1) #Adjust distance as needed
+        clawMove(FORWARD, speedOfClaw, moveClawDistance) #Open claw
+        drive(REVERSE, speedOfTravel, 1) #Adjust distance as needed
+    elif(fruitColor == "ORANGE"):
+        drive(FORWARD, speedOfTravel, 4) #Adjust distance as needed
+        ninetyTurn("LEFT")
+        drive(FORWARD, speedOfTravel, 1) #Adjust distance as needed
+        clawMove(FORWARD, speedOfClaw, moveClawDistance) #Open claw
+        drive(REVERSE, speedOfTravel, 1) #Adjust distance as needed
+    elif(fruitColor == "PURPLE"):
+        drive(FORWARD, speedOfTravel, 6) #Adjust distance as needed
+        ninetyTurn("LEFT")
+        drive(FORWARD, speedOfTravel, 1) #Adjust distance as needed
+        clawMove(FORWARD, speedOfClaw, moveClawDistance) #Open claw
+        drive(REVERSE, speedOfTravel, 1) #Adjust distance as needed
+    else:
+        print("Invalid fruit color")
 
 #Line tracking function with proportional control
 def lineTracking(distanceFrom):
