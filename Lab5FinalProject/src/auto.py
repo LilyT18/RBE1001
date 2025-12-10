@@ -33,6 +33,7 @@
 
 
 
+from turtle import speed
 from vex import *
 
 # Brain should be defined by default
@@ -335,7 +336,26 @@ def goToRow(row):
 #TODO: Test/tune function
 #Go to bin area based off of aisleRow
 def goToBins():
-    pass
+    aisle, row = getAisleRow(aisleRow)
+    
+    ninetyTurn("LEFT")
+    while True:
+        leftMotor.set_velocity(speedOfTravel, RPM)
+        leftMotor.spin(FORWARD, wait = False)
+
+        rightMotor.set_velocity(speedOfTravel, RPM)
+        rightMotor.spin(FORWARD, wait = False)
+        if(checkDistanceSensing(500)): #Test this distance
+            leftMotor.stop()
+            rightMotor.stop()
+            break
+        if(rightLine.value() > 2000 and leftLine.value() > 2000):
+            leftMotor.stop()
+            rightMotor.stop()
+            break
+    ninetyTurn("RIGHT")
+    lineTracking(300) #Adjust distance as needed
+    ninetyTurn("RIGHT")
 
 #TODO: Test/Tune function
 #Deposit fruit into correct bin based off of fruitColor
