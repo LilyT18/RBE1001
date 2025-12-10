@@ -32,8 +32,6 @@
 # ----------------------------------------------------------------- #
 
 
-
-from turtle import speed
 from vex import *
 
 # Brain should be defined by default
@@ -85,7 +83,7 @@ currentState = IDLE
 toFruitDistance = 2.5 #Turns
 fruitColor = None
 treeNum = 0
-aisleRow = 0
+aisleRow = 11
 arrivedAtLocation = False
 
 rackLevel = 0
@@ -276,13 +274,15 @@ def goToTree(aisleRow):
     else:
         print("Invalid tree number")
 
+#Get aisle and row from aisleRow number
 def getAisleRow(aisleRowNum):
-    return aisleRowNum/10, aisleRowNum%10
+    return math.floor(aisleRowNum/10), aisleRowNum%10
 
 #TODO: Test/Tune function
 #Go to tree based off of aisle row
 def goToAisleRow():
     aisle, row = getAisleRow(aisleRow)
+    print("Aisle: ", aisle, " Row: ", row)
     if(aisle == 1):
         ninetyTurn("LEFT")
         goToRow(row)
@@ -338,7 +338,32 @@ def goToRow(row):
 def goToBins():
     aisle, row = getAisleRow(aisleRow)
     
-    ninetyTurn("LEFT")
+    while True:
+        leftMotor.set_velocity(speedOfTravel, RPM)
+        leftMotor.spin(FORWARD, wait = False)
+
+        rightMotor.set_velocity(speedOfTravel, RPM)
+        rightMotor.spin(FORWARD, wait = False)
+        
+        if(aisle == 1):
+            if(checkDistanceSensing(1200) and  not checkDistanceSensing(300)): #Test this distance
+                leftMotor.stop()
+                rightMotor.stop()
+                break
+        elif(aisle == 2):
+            if(checkDistanceSensing(800) and  not checkDistanceSensing(300)): #Test this distance
+                leftMotor.stop()
+                rightMotor.stop()
+                break
+        elif(aisle == 3):
+            if(checkDistanceSensing(500) and  not checkDistanceSensing(300)): #Test this distance
+                leftMotor.stop()
+                rightMotor.stop()
+                break
+        else:
+            print("Invalid aisle number")
+            break
+    
     while True:
         leftMotor.set_velocity(speedOfTravel, RPM)
         leftMotor.spin(FORWARD, wait = False)
@@ -471,7 +496,8 @@ def centerRobotToCameraObject():
 
 #For testing individual functions
 def handleRight1():
-    pass
+    print("Button R1 Pressed")
+    ninetyTurn("RIGHT")
 
 controller.buttonL1.pressed(handleLeft1)
 controller.buttonL2.pressed(handleLeft2)
