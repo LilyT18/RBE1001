@@ -46,7 +46,7 @@ def handleSonarTimer():
 
         print(right, left)
 
-        distance_error = left - right
+        distance_error = right - left
 
         driving_effort = Kp * distance_error
         print(driving_effort)
@@ -109,6 +109,9 @@ wasMoving = False
 def checkMotionComplete():
     global wasMoving
 
+    if current_state == IDLE:
+        return
+
     retVal = False
 
     isMoving = leftMotor.is_spinning() or rightMotor.is_spinning()
@@ -122,6 +125,9 @@ def checkMotionComplete():
 def handleMotionComplete():
     global current_state
     global countNumTurns
+
+    if current_state == IDLE:
+        return
 
     if(current_state == LINEFOLLOWING and countNumTurns >= 3):
         print('LINEFOLLOWING -> IDLE')
@@ -168,5 +174,5 @@ def handleDistanceTriggered():
 controller.buttonL1.pressed(handleLeft1Button)
 
 while True:
-    if(checkMotionComplete()): handleMotionComplete()
+    #if(checkMotionComplete()): handleMotionComplete()
     if(checkDistanceTriggered()): handleDistanceTriggered()
