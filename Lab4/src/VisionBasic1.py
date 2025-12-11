@@ -10,9 +10,12 @@ brain=Brain()
 left_motor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
 right_motor = Motor(Ports.PORT10, GearSetting.RATIO_18_1, True)
 # AI Vision Color Descriptions
-ai_vision_15__Red_Folder = Colordesc(1, 222, 31, 63, 11, 0.48)
+#ai_vision_15__Red_Folder = Colordesc(1, 222, 31, 63, 11, 0.48)
+ai_vision_15_green = Colordesc(1, 114, 247, 118, 10, 0.2)
+ai_vision_15_orange = Colordesc(2, 232, 143, 125, 10, 0.2)
+ai_vision_15_purple = Colordesc(3, 181, 135, 217, 10, 0.2)
 # AI Vision Code Descriptions
-ai_vision_15 = AiVision(Ports.PORT15, ai_vision_15__Red_Folder)
+ai_vision_15 = AiVision(Ports.PORT15, ai_vision_15_green)
 bumper_g = Bumper(brain.three_wire_port.g)
 
 
@@ -108,8 +111,10 @@ def cameraTimerCallback():
     ## Here we use a checker-handler, where the checker checks if there is a new object detection.
     ## We don't use a "CheckForObjects()" function because take_snapshot() acts as the checker.
     ## It returns a non-empty list if there is a detection.
-    objects = ai_vision_15.take_snapshot(ai_vision_15__Red_Folder)
-    if objects: handleObjectDetection()
+    objects = ai_vision_15.take_snapshot(ai_vision_15_green)
+    if objects: 
+        print("Object detected")
+        handleObjectDetection()
 
     # restart the timer
     if(current_state != ROBOT_IDLE):
@@ -121,8 +126,12 @@ def handleObjectDetection():
 
     cx = ai_vision_15.largest_object().centerX
     cy = ai_vision_15.largest_object().centerY
+    width = ai_vision_15.largest_object().width
+    height = ai_vision_15.largest_object().height
 
     ## TODO: Add code to print out the coordinates and size
+    print("Coordinates: " + str(cx) + "," + str(cy))
+    print("Size(w,h):" + str(width) + "," + str(height))
 
 
     if current_state == ROBOT_SEARCHING:
@@ -133,7 +142,7 @@ def handleObjectDetection():
     if current_state == ROBOT_APPROACHING:
 
         target_x = 160
-        K_x = 0.5
+        K_x = 0.2
 
         error = cx - target_x
         turn_effort = K_x * error
@@ -143,8 +152,10 @@ def handleObjectDetection():
         left_motor.spin(FORWARD, 20 - turn_effort)
         right_motor.spin(FORWARD, 20 + turn_effort)
 
+        
+
 
 
 ## Our main loop
 while True:
-    pass
+    cameraTimerCallback()
