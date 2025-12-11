@@ -385,7 +385,7 @@ def goToRow(row):
         drive(FORWARD, speedOfTravel, 3)
         handleMotionComplete()
     elif(row == 2):
-        drive(FORWARD, speedOfTravel, 2.5) 
+        drive(FORWARD, speedOfTravel, 2) 
         wait(2000, MSEC)
         handleMotionComplete()
     elif(row == 3):

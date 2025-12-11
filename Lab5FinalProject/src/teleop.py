@@ -240,7 +240,7 @@ def returnRobotToBase():
 
 
 def getAisleRow(aisleRowNum):
-    return aisleRowNum/10, aisleRowNum%10
+    return math.floor(aisleRowNum/10), aisleRowNum%10
 
 #TODO: Test/Tune function
 #Go to tree based off of aisle row
@@ -268,7 +268,8 @@ def goToRow(row):
     if(row == 1):
         lineTracking(350)
     elif(row == 2):
-        lineTracking(1300)
+        print("Going to row 2")
+        lineTracking(13000)
     elif(row == 3):
         lineTracking(2400) 
     elif(row == 4):
@@ -307,27 +308,22 @@ def depositFruit():
 
 #Line tracking function with proportional control
 def lineTracking(distanceFrom):
-    Kp = 30.0  # Proportional gain, adjust as needed
+    Kp = 20.0  # Proportional gain, adjust as needed
     
     while True:
-        leftDetected = leftLine.value() > 2000  # Adjust threshold as needed (0-100)
-        rightDetected = rightLine.value() > 2000        
+        leftDetected = leftLine.value() < 300  # Adjust threshold as needed (0-100)
+        rightDetected = rightLine.value() < 300        
         # Calculate error: positive = too far right, negative = too far left
         if leftDetected and rightDetected:
             error = 0
-            leftMotor.set_velocity(speedOfTravel, RPM)
-            rightMotor.set_velocity(speedOfTravel, RPM)
             
         elif leftDetected and not rightDetected:
             error = 1
             
         elif not leftDetected and rightDetected:
             error = -1
-            
         else:
-            leftMotor.stop()
-            rightMotor.stop()
-            break
+            error = 0  # Both sensors off line; could implement last known direction
         
         correction = Kp * error
         
@@ -339,6 +335,7 @@ def lineTracking(distanceFrom):
         
         leftMotor.spin(FORWARD)
         rightMotor.spin(FORWARD)
+        print("Left Line:", leftLine.value(), "Right Line:", rightLine.value(), "Error:", error, "Correction:", correction)
         
         wait(10, MSEC)
         if(checkDistanceSensing(distanceFrom)):
