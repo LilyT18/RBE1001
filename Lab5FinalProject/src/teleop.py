@@ -378,20 +378,44 @@ def clawMove(direction, speed, distance):
 
 #TODO: Check if code works and test to make sure it works
 #Ilakkiya this is yourssssss
+#specific color codes for the fruits
+ai_vision_15_green = Colordesc(1, 114, 247, 118, 10, 0.2)
+ai_vision_15_orange = Colordesc(2, 232, 143, 125, 10, 0.2)
+ai_vision_15_purple = Colordesc(3, 181, 135, 217, 10, 0.2)
 #You'll need to check the ports of the camera 
 #Use the camera to return the color being detected
 #Three colors: green, orange, and purple
 def getColorFromCamera():
-    detectedObjects = ai_vision_15.largest_object()
-    if(detectedObjects.exists):
-        return detectedObjects.color
+    #detectedObjects = ai_vision_15.largest_object()
+    if(ai_vision_15.take_snapshot(ai_vision_15_green)):
+        return "GREEN"
+    elif(ai_vision_15.take_snapshot(ai_vision_15_orange)):
+        return "ORANGE"
+    elif(ai_vision_15.take_snapshot(ai_vision_15_purple)):
+        return "PURPLE"
     else:
         return None
 
 #TODO: Ilakkiya this is also yoursssss
 #Center robot to camera object
 def centerRobotToCameraObject():
-    pass
+    cx = ai_vision_15.largest_object().centerX
+    cy = ai_vision_15.largest_object().centerY
+
+    target_x = 160
+    K_x = 0.2
+
+    #centering the fruit
+    error = cx - target_x
+    turn_effort = K_x * error
+
+    while (ai_vision_15.largest_object().width < 160 or ai_vision_15.largest_object().height < 160):
+        left_motor.spin(FORWARD, 20 - turn_effort)
+        right_motor.spin(FORWARD, 20 + turn_effort)
+    left_motor.stop()
+    right_motor.stop()
+
+
 #For testing individual functions
 
 controller.buttonL1.pressed(handleLeft1)
