@@ -41,8 +41,7 @@ leftMotor = Motor(Ports.PORT2, GearSetting.RATIO_18_1, True) #Motor 63
 controller = Controller()
 rack1 = Motor(Ports.PORT4, GearSetting.RATIO_36_1, False) #Motor 59
 rack2 = Motor(Ports.PORT3, GearSetting.RATIO_36_1, True) #Motor 58
-ai_vision_15__Red_Folder = Colordesc(1, 222, 31, 63, 11, 0.48) #TODO: figure out what this means
-ai_vision_15 = AiVision(Ports.PORT15, ai_vision_15__Red_Folder) 
+ai_vision_15 = AiVision(Ports.PORT15) 
 #bumper_g = Bumper(brain.three_wire_port.g) #TODO: confirm 
 leftLine = Line(brain.three_wire_port.a) 
 rightLine = Line(brain.three_wire_port.b) 
@@ -554,136 +553,39 @@ def clawMove(direction, speed, distance):
 #You'll need to check the ports of the camera 
 #Use the camera to return the color being detected
 #Three colors: green, orange, and purple
+ai_vision_15_green = Colordesc(1, 114, 247, 118, 10, 0.2)
+ai_vision_15_orange = Colordesc(2, 232, 143, 125, 10, 0.2)
+ai_vision_15_purple = Colordesc(3, 181, 135, 217, 10, 0.2)
 def getColorFromCamera():
-    detectedObjects = ai_vision_15.largest_object()
-    if(detectedObjects.exists):
-        return detectedObjects.color
+    #detectedObjects = ai_vision_15.largest_object()
+    if(ai_vision_15.take_snapshot(ai_vision_15_green)):
+        return "GREEN"
+    elif(ai_vision_15.take_snapshot(ai_vision_15_orange)):
+        return "ORANGE"
+    elif(ai_vision_15.take_snapshot(ai_vision_15_purple)):
+        return "PURPLE"
     else:
         return None
 
 #TODO: Ilakkiya this is also yoursssss
 #Center robot to camera object
 def centerRobotToCameraObject():
-    import time
+    if(ai_vision_15.largest_object().exists):
+        cx = ai_vision_15.largest_object().centerX
+        cy = ai_vision_15.largest_object().centerY
 
-    # Parameters you can tune
-    maxTurnSpeed = 30    # RPM used when rotating in place to center
-    timeout = 6.0        # seconds to attempt centering/searching
-    kp = 0.12            # proportional gain (RPM per pixel)
-    deadband = 8         # pixels tolerance for being "centered"
-    FRAME_CENTER_X = 158 # approximate image center; adjust if known
+    target_x = 160
+    K_x = 0.2
 
-    start = time.time()
-    last_switch = start
-    search_dir = 1
-    found_any = False
+    #centering the fruit
+    error = cx - target_x
+    turn_effort = K_x * error
 
-    def _obj_x(o):
-        # Try common attribute names and structures
-        for name in ("center_x", "centerX", "x", "x_position"):
-            if hasattr(o, name):
-                try:
-                    return float(getattr(o, name))
-                except Exception:
-                    pass
-        if hasattr(o, 'center'):
-            c = getattr(o, 'center')
-            try:
-                return float(c.x)
-            except Exception:
-                try:
-                    return float(c[0])
-                except Exception:
-                    pass
-        # Try bounding box center if available
-        for name in ("bbox_center_x", "bbox_center", "centerX_px"):
-            if hasattr(o, name):
-                try:
-                    val = getattr(o, name)
-                    return float(val)
-                except Exception:
-                    pass
-        return None
-
-    while (time.time() - start) < timeout:
-        obj = ai_vision_15.largest_object()
-
-        if not obj.exists:
-            # Perform a slow sweep to search for the object
-            now = time.time()
-            if (now - last_switch) > 0.6:
-                search_dir *= -1
-                last_switch = now
-
-            # rotate in place slowly
-            leftMotor.set_velocity(maxTurnSpeed * 0.35, RPM)
-            rightMotor.set_velocity(maxTurnSpeed * 0.35, RPM)
-            if search_dir > 0:
-                leftMotor.spin(FORWARD)
-                rightMotor.spin(REVERSE)
-            else:
-                leftMotor.spin(REVERSE)
-                rightMotor.spin(FORWARD)
-
-            wait(100, MSEC)
-            continue
-
-        # Object exists
-        found_any = True
-        x = _obj_x(obj)
-        # debug print to help tuning on robot
-        try:
-            print("Vision object x:", x, "exists:", obj.exists)
-        except Exception:
-            pass
-
-        if x is None:
-            leftMotor.stop()
-            rightMotor.stop()
-            return False
-
-        # Error positive => object is to the right of center (need turn right)
-        error = x - FRAME_CENTER_X
-
-        if abs(error) <= deadband:
-            leftMotor.stop()
-            rightMotor.stop()
-            return True
-
-        # Map pixel error to rotational speed (RPM)
-        correction = kp * error
-
-        leftSpeed = -correction
-        rightSpeed = correction
-
-        # Scale to maxTurnSpeed if needed
-        peak = max(abs(leftSpeed), abs(rightSpeed), 1e-6)
-        if peak > maxTurnSpeed:
-            scale = maxTurnSpeed / peak
-            leftSpeed *= scale
-            rightSpeed *= scale
-
-        # Set velocities and spin directions
-        leftMotor.set_velocity(abs(leftSpeed), RPM)
-        rightMotor.set_velocity(abs(rightSpeed), RPM)
-
-        if leftSpeed >= 0:
-            leftMotor.spin(FORWARD)
-        else:
-            leftMotor.spin(REVERSE)
-
-        if rightSpeed >= 0:
-            rightMotor.spin(FORWARD)
-        else:
-            rightMotor.spin(REVERSE)
-
-        wait(40, MSEC)
-
-    # timed out
+    while (ai_vision_15.largest_object().width < 160 or ai_vision_15.largest_object().height < 160):
+        leftMotor.spin(FORWARD, 20 - turn_effort)
+        rightMotor.spin(FORWARD, 20 + turn_effort)
     leftMotor.stop()
     rightMotor.stop()
-    return found_any
-
 
 #For testing individual functions
 def handleRight1():
@@ -695,7 +597,11 @@ def handleRight1():
     #pickFruit()
     #depositFruit()
     #centerRobotToCameraObject()
-
+    while True:
+        color = getColorFromCamera()
+        print(color)
+        wait(1000, MSEC)
+    
 controller.buttonL1.pressed(handleLeft1)
 controller.buttonL2.pressed(handleLeft2)
 controller.buttonR1.pressed(handleRight1)
