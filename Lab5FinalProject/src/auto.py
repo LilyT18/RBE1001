@@ -91,7 +91,7 @@ def ninetyTurn(direction, speed, distance):
 
 #States
 IDLE = 0
-GOTOTREE = 1 #Goes to spcific tree (1 - 6)
+GOTOAISLEROW = 1 #Goes to spcific tree (1 - 6)
 GOTOSTAGE = 2 #Goes to specific heig
 PICKFRUIT = 3 #Drives towards fruit and picks it
 GOTOBINS = 4 #Based off of current aisle, goes to the bin area
@@ -139,7 +139,7 @@ def handleLeft1():
     
     if(currentState == IDLE):
         print("IDLE --> GOTOTREE")
-        currentState = GOTOTREE
+        currentState = GOTOAISLEROW
         
         goToAisleRow()
     else:
@@ -164,7 +164,7 @@ def handleLeft2():
     
     if(currentState == IDLE):
         print("IDLE --> GOTOTREE")
-        currentState = GOTOTREE
+        currentState = GOTOAISLEROW
         
         goToAisleRow()
     else:
@@ -189,7 +189,7 @@ def handleRight2():
     
     if(currentState == IDLE):
         print("IDLE --> GOTOTREE")
-        currentState = GOTOTREE
+        currentState = GOTOAISLEROW
         
         goToAisleRow()
     else:
@@ -204,7 +204,7 @@ def handleRight2():
 def handleMotionComplete():
     global currentState
     
-    if(currentState == GOTOTREE):
+    if(currentState == GOTOAISLEROW):
         print("GOTOTREE --> GOTOSTAGE")
         currentState = GOTOSTAGE
         
