@@ -163,7 +163,7 @@ def handleLeft2():
     treeNum = 4
     
     if(currentState == IDLE):
-        print("IDLE --> GOTOTREE")
+        print("IDLE --> GOTOAISLEROW")
         currentState = GOTOAISLEROW
         
         goToAisleRow()
@@ -188,7 +188,7 @@ def handleRight2():
     aisleRow = 11
     
     if(currentState == IDLE):
-        print("IDLE --> GOTOTREE")
+        print("IDLE --> GOTOAISLEROW")
         currentState = GOTOAISLEROW
         
         goToAisleRow()
@@ -205,7 +205,7 @@ def handleMotionComplete():
     global currentState
     
     if(currentState == GOTOAISLEROW):
-        print("GOTOTREE --> GOTOSTAGE")
+        print("GOTOAISLEROW --> GOTOSTAGE")
         currentState = GOTOSTAGE
         
         goToStage(rackLevel)
@@ -527,12 +527,10 @@ def lineTracking(distanceFrom):
         
         leftMotor.spin(FORWARD)
         rightMotor.spin(FORWARD)
-        """
         if(checkDistanceSensing(distanceFrom)):
             leftMotor.stop()
             rightMotor.stop()
             break
-        """
 
 #Distance tracking function
 #Distance less than distanceFrommm returns True
@@ -548,9 +546,6 @@ def clawMove(direction, speed, distance):
     claw.set_velocity(speed, RPM)
     claw.spin_for(direction, distance, TURNS, wait = False)
 
-#TODO: Check if code works and test to make sure it works
-#Ilakkiya this is yourssssss
-#You'll need to check the ports of the camera 
 #Use the camera to return the color being detected
 #Three colors: green, orange, and purple
 ai_vision_15_green = Colordesc(1, 114, 247, 118, 10, 0.2)
@@ -567,7 +562,6 @@ def getColorFromCamera():
     else:
         return None
 
-#TODO: Ilakkiya this is also yoursssss
 #Center robot to camera object
 def centerRobotToCameraObject():
     if(ai_vision_15.largest_object().exists):
